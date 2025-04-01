@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guess the Number Game</title>
@@ -234,13 +236,13 @@
         </div>
         <div class="section-content game-section">
             <div class="difficulty-buttons">
-                <button class="difficulty-button easy active-difficulty" onclick="setDifficulty('easy')">
+                <button id="easyBtn" class="difficulty-button easy active-difficulty" onclick="setDifficulty('easy')">
                     Easy (1-50)
                 </button>
-                <button class="difficulty-button medium" onclick="setDifficulty('medium')">
+                <button id="mediumBtn" class="difficulty-button medium" onclick="setDifficulty('medium')">
                     Medium (1-100)
                 </button>
-                <button class="difficulty-button hard" onclick="setDifficulty('hard')">
+                <button id="hardBtn" class="difficulty-button hard" onclick="setDifficulty('hard')">
                     Hard (1-200)
                 </button>
             </div>
@@ -248,8 +250,8 @@
             <p>I'm thinking of a number. Can you guess it?</p>
             
             <div class="game-input">
-                <input type="number" id="numberGuess" class="number-input" min="1" max="100" placeholder="?">
-                <button class="guess-button" onclick="makeGuess()">
+                <input type="number" id="numberGuess" class="number-input" min="1" max="50" placeholder="?">
+                <button id="guessButton" class="guess-button">
                     <i class="fas fa-check"></i> Guess
                 </button>
             </div>
@@ -268,13 +270,14 @@
                 <!-- Guess bubbles will be added here -->
             </div>
             
-            <button class="reset-button" onclick="resetGame()">
+            <button id="resetButton" class="reset-button">
                 <i class="fas fa-redo"></i> New Game
             </button>
         </div>
     </div>
 
     <script>
+        // Game variables
         let secretNumber;
         let attempts = 0;
         let gameOver = false;
@@ -290,14 +293,36 @@
             'hard': 200
         };
         
+        // DOM elements
+        const numberGuessInput = document.getElementById('numberGuess');
+        const guessButton = document.getElementById('guessButton');
+        const resetButton = document.getElementById('resetButton');
+        const attemptsDisplay = document.getElementById('attempts');
+        const bestScoreDisplay = document.getElementById('bestScore');
+        const currentRangeDisplay = document.getElementById('currentRange');
+        const gameResultDisplay = document.getElementById('gameResult');
+        const guessHistoryDisplay = document.getElementById('guessHistory');
+        
         // Initialize the game when the page loads
-        window.onload = function() {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up event listeners
+            guessButton.addEventListener('click', makeGuess);
+            resetButton.addEventListener('click', resetGame);
+            numberGuessInput.addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    makeGuess();
+                }
+            });
+            
+            // Initialize the game
             resetGame();
-        };
+        });
         
         function toggleSection(sectionId) {
             const section = document.getElementById(sectionId);
-            section.classList.toggle('section-hidden');
+            if (section) {
+                section.classList.toggle('section-hidden');
+            }
         }
         
         function setDifficulty(difficulty) {
@@ -305,14 +330,18 @@
             document.querySelectorAll('.difficulty-button').forEach(button => {
                 button.classList.remove('active-difficulty');
             });
-            document.querySelector(`.${difficulty}`).classList.add('active-difficulty');
+            
+            const selectedButton = document.querySelector(`.${difficulty}`);
+            if (selectedButton) {
+                selectedButton.classList.add('active-difficulty');
+            }
             
             // Set new difficulty and update range display
             currentDifficulty = difficulty;
-            document.getElementById('currentRange').textContent = `1-${ranges[difficulty]}`;
+            currentRangeDisplay.textContent = `1-${ranges[difficulty]}`;
             
             // Update input max attribute
-            document.getElementById('numberGuess').max = ranges[difficulty];
+            numberGuessInput.max = ranges[difficulty];
             
             // Reset the game with new difficulty
             resetGame();
@@ -323,8 +352,7 @@
                 return;
             }
             
-            const guessInput = document.getElementById('numberGuess');
-            const guess = parseInt(guessInput.value);
+            const guess = parseInt(numberGuessInput.value);
             
             // Validate input
             if (isNaN(guess) || guess < 1 || guess > ranges[currentDifficulty]) {
@@ -333,13 +361,12 @@
             }
             
             attempts++;
-            document.getElementById('attempts').textContent = attempts;
+            attemptsDisplay.textContent = attempts;
             
             // Add guess to history
             addGuessToHistory(guess);
             
             // Check guess
-            const resultElement = document.getElementById('gameResult');
             const feedback = document.createElement('div');
             feedback.className = 'feedback';
             
@@ -351,7 +378,7 @@
                 // Update best score if needed
                 if (attempts < bestScores[currentDifficulty] || bestScores[currentDifficulty] === Infinity) {
                     bestScores[currentDifficulty] = attempts;
-                    document.getElementById('bestScore').textContent = attempts;
+                    bestScoreDisplay.textContent = attempts;
                 }
             } else if (guess < secretNumber) {
                 feedback.textContent = `Too low! Try a higher number.`;
@@ -361,16 +388,15 @@
                 feedback.className += ' too-high';
             }
             
-            resultElement.innerHTML = '';
-            resultElement.appendChild(feedback);
+            gameResultDisplay.innerHTML = '';
+            gameResultDisplay.appendChild(feedback);
             
             // Clear input for next guess
-            guessInput.value = '';
-            guessInput.focus();
+            numberGuessInput.value = '';
+            numberGuessInput.focus();
         }
         
         function addGuessToHistory(guess) {
-            const historyElement = document.getElementById('guessHistory');
             const guessBubble = document.createElement('div');
             guessBubble.className = 'guess-bubble';
             
@@ -384,7 +410,7 @@
             }
             
             guessBubble.textContent = guess;
-            historyElement.appendChild(guessBubble);
+            guessHistoryDisplay.appendChild(guessBubble);
         }
         
         function resetGame() {
@@ -396,25 +422,21 @@
             gameOver = false;
             
             // Reset UI
-            document.getElementById('attempts').textContent = '0';
-            document.getElementById('gameResult').innerHTML = '<div class="feedback">Enter your first guess to start!</div>';
-            document.getElementById('guessHistory').innerHTML = '';
-            document.getElementById('numberGuess').value = '';
+            attemptsDisplay.textContent = '0';
+            gameResultDisplay.innerHTML = '<div class="feedback">Enter your first guess to start!</div>';
+            guessHistoryDisplay.innerHTML = '';
+            numberGuessInput.value = '';
             
             // Display best score if exists
             if (bestScores[currentDifficulty] !== Infinity) {
-                document.getElementById('bestScore').textContent = bestScores[currentDifficulty];
+                bestScoreDisplay.textContent = bestScores[currentDifficulty];
             } else {
-                document.getElementById('bestScore').textContent = '-';
+                bestScoreDisplay.textContent = '-';
             }
             
             // Update range display
-            document.getElementById('currentRange').textContent = `1-${ranges[currentDifficulty]}`;
+            currentRangeDisplay.textContent = `1-${ranges[currentDifficulty]}`;
         }
-        
-        // Allow Enter key to submit guess
-        document.getElementById('numberGuess').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                makeGuess();
-            }
-        });
+    </script>
+</body>
+</html>
