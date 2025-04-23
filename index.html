@@ -158,14 +158,6 @@
             color: white;
         }
         
-        .high-guess {
-            background-color: #e74c3c;
-        }
-        
-        .low-guess {
-            background-color: #3498db;
-        }
-        
         .stats {
             display: flex;
             justify-content: space-around;
@@ -402,11 +394,57 @@
             
             if (guess < secretNumber) {
                 guessBubble.className += ' low-guess';
+                
+                // Calculate how close the guess is to the secret number (as a percentage of the total range)
+                const totalRange = ranges[currentDifficulty];
+                const distance = secretNumber - guess;
+                const percentageAway = (distance / totalRange) * 100;
+                
+                // Determine shade of blue based on proximity (lighter blue = closer)
+                // We'll use a scale from light blue (close) to dark blue (far)
+                if (percentageAway <= 5) {
+                    // Very close (within 5% of the range)
+                    guessBubble.style.backgroundColor = '#80c1ff'; // Light blue
+                } else if (percentageAway <= 15) {
+                    // Somewhat close (within 15% of the range)
+                    guessBubble.style.backgroundColor = '#4a9ced'; // Medium-light blue
+                } else if (percentageAway <= 30) {
+                    // Medium distance (within 30% of the range)
+                    guessBubble.style.backgroundColor = '#3498db'; // Medium blue (original color)
+                } else if (percentageAway <= 50) {
+                    // Far (within 50% of the range)
+                    guessBubble.style.backgroundColor = '#2980b9'; // Medium-dark blue
+                } else {
+                    // Very far (more than 50% of the range)
+                    guessBubble.style.backgroundColor = '#1c4966'; // Dark blue
+                }
             } else if (guess > secretNumber) {
                 guessBubble.className += ' high-guess';
+                
+                // Similar logic for high guesses using shades of red
+                const totalRange = ranges[currentDifficulty];
+                const distance = guess - secretNumber;
+                const percentageAway = (distance / totalRange) * 100;
+                
+                if (percentageAway <= 5) {
+                    // Very close (within 5% of the range)
+                    guessBubble.style.backgroundColor = '#ff8080'; // Light red
+                } else if (percentageAway <= 15) {
+                    // Somewhat close (within 15% of the range)
+                    guessBubble.style.backgroundColor = '#ff5252'; // Medium-light red
+                } else if (percentageAway <= 30) {
+                    // Medium distance (within 30% of the range)
+                    guessBubble.style.backgroundColor = '#e74c3c'; // Medium red (original color)
+                } else if (percentageAway <= 50) {
+                    // Far (within 50% of the range)
+                    guessBubble.style.backgroundColor = '#c0392b'; // Medium-dark red
+                } else {
+                    // Very far (more than 50% of the range)
+                    guessBubble.style.backgroundColor = '#922b21'; // Dark red
+                }
             } else {
                 guessBubble.className += ' correct';
-                guessBubble.style.backgroundColor = '#2ecc71';
+                guessBubble.style.backgroundColor = '#2ecc71'; // Green for correct
             }
             
             guessBubble.textContent = guess;
